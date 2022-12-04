@@ -9,6 +9,8 @@ using Vec = std::array<float, N>;
 template <size_t M, size_t N>
 using Mtx = std::array<std::array<float, N>, M>;
 
+#include "GaussJordan.h"
+
 // ============================= VECTOR / VECTOR =============================
 
 template <size_t N>
@@ -58,8 +60,26 @@ Mtx<N, M> Transpose(const Mtx<M, N>& A)
 template <size_t N>
 Mtx<N, N> Inverse(const Mtx<N, N>& A)
 {
-    // TODO: do this!
-    return A;
+    // Make the augmented matrix
+    Mtx<N, N * 2> augmentedMtx;
+    for (int iy = 0; iy < N; ++iy)
+    {
+        for (int ix = 0; ix < N; ++ix)
+        {
+            augmentedMtx[iy][ix] = A[iy][ix];
+            augmentedMtx[iy][ix + N] = (ix == iy) ? 1.0f : 0.0f;
+        }
+    }
+
+    // Invert
+    GaussJordanElimination(augmentedMtx);
+
+    // Get inverted matrix
+    Mtx<N, N> ret;
+    for (int iy = 0; iy < N; ++iy)
+        for (int ix = 0; ix < N; ++ix)
+            ret[iy][ix] = augmentedMtx[iy][ix + N];
+    return ret;
 }
 
 // ============================= MATRIX / MATRIX =============================

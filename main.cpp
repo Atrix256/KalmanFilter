@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include "mtxmath.h"
-#include "glm/vec3.hpp"
-#include "glm/mat3x3.hpp"
 
 template <size_t NUM_STATE_VARIABLES, size_t NUM_CONTROL_VARIABLES, size_t NUM_MEASUREMENT_VARIABLES>
 class KalmanFilter
@@ -27,6 +25,8 @@ public:
         // TODO: what size is this?
         auto kalmanGain = m_stateVector * Transpose(m_observationMatrix) *
             Inverse(m_observationMatrix * m_stateVector * Transpose(m_observationMatrix) + m_measurementUncertainty);
+
+        int ijkl = 0;
     }
 
     Vec<NUM_STATE_VARIABLES> m_stateVector = {};
@@ -188,7 +188,8 @@ int main(int argc, char** argv)
             2.14f
         };
 
-        //filter.Predict();
+        //filter.Iterate({ measureX[0], measureY[0] });
+
         int ijkl = 0;
     }
 
