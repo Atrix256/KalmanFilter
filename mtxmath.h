@@ -20,6 +20,15 @@ float Dot(const Vec<N>& A, const Vec<N>& B)
     return ret;
 }
 
+template <size_t N>
+Vec<N> operator +(const Vec<N>& A, const Vec<N>& B)
+{
+    Vec<N> ret;
+    for (int i = 0; i < N; ++i)
+        ret[i] = A[i] + B[i];
+    return ret;
+}
+
 // ============================= MATRIX =============================
 
 template <size_t M, size_t N>
@@ -44,6 +53,13 @@ Mtx<N, M> Transpose(const Mtx<M, N>& A)
     for (int iy = 0; iy < M; ++iy)
         ret[iy] = Col(A, iy);
     return ret;
+}
+
+template <size_t N>
+Mtx<N, N> Inverse(const Mtx<N, N>& A)
+{
+    // TODO: do this!
+    return A;
 }
 
 // ============================= MATRIX / MATRIX =============================

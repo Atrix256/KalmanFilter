@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "mtxmath.h"
+#include "glm/vec3.hpp"
+#include "glm/mat3x3.hpp"
 
 template <size_t NUM_STATE_VARIABLES, size_t NUM_CONTROL_VARIABLES, size_t NUM_MEASUREMENT_VARIABLES>
 class KalmanFilter
@@ -12,11 +14,19 @@ public:
 
     void Predict()
     {
+        // TODO: need process noise, but that is a matrix so... ???
+        m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;// +m_processNoiseMatrix;
+        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
     }
 
-    void Update()
+    void Iterate(const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
     {
+        Predict();
 
+        // Calculate kalman gain
+        // TODO: what size is this?
+        auto kalmanGain = m_stateVector * Transpose(m_observationMatrix) *
+            Inverse(m_observationMatrix * m_stateVector * Transpose(m_observationMatrix) + m_measurementUncertainty);
     }
 
     Vec<NUM_STATE_VARIABLES> m_stateVector = {};
@@ -26,9 +36,11 @@ public:
     Mtx<NUM_STATE_VARIABLES, NUM_STATE_VARIABLES> m_stateUncertainty = {};
     Mtx<NUM_MEASUREMENT_VARIABLES, NUM_MEASUREMENT_VARIABLES> m_measurementUncertainty = {};
 
-    //Vec<NUM_CONTROL_VARIABLES> m_controlVector = {};
-    //Mtx<NUM_STATE_VARIABLES, NUM_CONTROL_VARIABLES> m_controlMatrix = {}; // TODO: is this backwards?
+    Vec<NUM_CONTROL_VARIABLES> m_controlVector = {};
+    Mtx<NUM_STATE_VARIABLES, NUM_CONTROL_VARIABLES> m_controlMatrix = {};
 
+    // To match measurement values with state vector values
+    Mtx<NUM_MEASUREMENT_VARIABLES, NUM_STATE_VARIABLES> m_observationMatrix = {};
 };
 
 int main(int argc, char** argv)
@@ -78,6 +90,11 @@ int main(int argc, char** argv)
                                                              0.0f, c_measurementErrorStdDevY * c_measurementErrorStdDevY,
         };
 
+        filter.m_observationMatrix = {
+            1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        };
+
         // Initial state
         filter.m_stateVector = {};
         filter.m_stateUncertainty = {};
@@ -87,11 +104,11 @@ int main(int argc, char** argv)
             filter.m_stateUncertainty[2][2] =
             filter.m_stateUncertainty[3][3] =
             filter.m_stateUncertainty[4][4] = 
-            filter.m_stateUncertainty[5][5] = 500;
+            filter.m_stateUncertainty[5][5] = 500.0f;
+
+        filter.Predict();
 
         // TODO: put this into the class, when you understand things better
-        filter.m_stateUncertainty =
-            filter.m_stateUpdateMatrix * filter.m_stateUncertainty * Transpose(filter.m_stateUpdateMatrix) + filter.m_processNoiseMatrix;
 
         float measureX[] =
         {
@@ -171,7 +188,7 @@ int main(int argc, char** argv)
             2.14f
         };
 
-        filter.Predict();
+        //filter.Predict();
         int ijkl = 0;
     }
 
