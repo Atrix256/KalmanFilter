@@ -2,12 +2,12 @@
 
 #include <array>
 
-template <size_t N>
-using Vec = std::array<float, N>;
-
 // Matrix notion of an MxN matrix means it is M values high and N values wide
 template <size_t M, size_t N>
 using Mtx = std::array<std::array<float, N>, M>;
+
+template <size_t N>
+using Vec = Mtx<N, 1>;
 
 #include "GaussJordan.h"
 
@@ -18,16 +18,7 @@ float Dot(const Vec<N>& A, const Vec<N>& B)
 {
     float ret = 0.0f;
     for (int i = 0; i < N; ++i)
-        ret += A[i] * B[i];
-    return ret;
-}
-
-template <size_t N>
-Vec<N> operator +(const Vec<N>& A, const Vec<N>& B)
-{
-    Vec<N> ret;
-    for (int i = 0; i < N; ++i)
-        ret[i] = A[i] + B[i];
+        ret += A[i][0] * B[i][0];
     return ret;
 }
 
@@ -36,15 +27,18 @@ Vec<N> operator +(const Vec<N>& A, const Vec<N>& B)
 template <size_t M, size_t N>
 Vec<N> Row(const Mtx<M, N>& mtx, int index)
 {
-    return mtx[index];
+    Vec<N> ret = {};
+    for (int i = 0; i < N; ++i)
+        ret[i][0] = mtx[index][i];
+    return ret;
 }
 
 template <size_t M, size_t N>
 Vec<M> Col(const Mtx<M, N>& mtx, int index)
 {
-    Vec<M> ret;
+    Vec<M> ret = {};
     for (int i = 0; i < M; ++i)
-        ret[i] = mtx[i][index];
+        ret[i][0] = mtx[i][index];
     return ret;
 }
 
@@ -53,7 +47,8 @@ Mtx<N, M> Transpose(const Mtx<M, N>& A)
 {
     Mtx<N, M> ret = {};
     for (int iy = 0; iy < M; ++iy)
-        ret[iy] = Col(A, iy);
+        for (int ix = 0; ix < N; ++ix)
+            ret[ix][iy] = A[iy][ix];
     return ret;
 }
 
@@ -82,6 +77,15 @@ Mtx<N, N> Inverse(const Mtx<N, N>& A)
     return ret;
 }
 
+template <size_t N>
+Mtx<N, N> Identity()
+{
+    Mtx<N, N> ret = {};
+    for (int i = 0; i < N; ++i)
+        ret[i][i] = 1.0f;
+    return ret;
+}
+
 // ============================= MATRIX / MATRIX =============================
 
 template <size_t M, size_t N, size_t O>
@@ -89,7 +93,7 @@ Mtx<M, O> operator *(const Mtx<M, N>& A, const Mtx<N, O>& B)
 {
     Mtx<M, O> ret = {};
     for (int iy = 0; iy < M; ++iy)
-        for (int ix = 0; ix < N; ++ix)
+        for (int ix = 0; ix < O; ++ix)
             ret[iy][ix] = Dot(Row(A, iy), Col(B, ix));
     return ret;
 }
@@ -101,6 +105,16 @@ Mtx<M, N> operator +(const Mtx<M, N>& A, const Mtx<M, N>& B)
     for (int iy = 0; iy < M; ++iy)
         for (int ix = 0; ix < N; ++ix)
             ret[iy][ix] = A[iy][ix] + B[iy][ix];
+    return ret;
+}
+
+template <size_t M, size_t N>
+Mtx<M, N> operator -(const Mtx<M, N>& A, const Mtx<M, N>& B)
+{
+    Mtx<M, N> ret;
+    for (int iy = 0; iy < M; ++iy)
+        for (int ix = 0; ix < N; ++ix)
+            ret[iy][ix] = A[iy][ix] - B[iy][ix];
     return ret;
 }
 
@@ -123,21 +137,3 @@ Mtx<M, N> operator *(float A, const Mtx<M, N>& B)
 }
 
 // ============================= MATRIX / VECTOR =============================
-
-template <size_t N, size_t M>
-Vec<M> operator *(const Vec<N>& A, const Mtx<N, M>& B)
-{
-    Vec<M> ret = {};
-    for (int i = 0; i < M; ++i)
-        ret[i] = Dot(A, Col(B, i));
-    return ret;
-}
-
-template <size_t M, size_t N>
-Vec<M> operator *(const Mtx<M, N>& A, const Vec<N>& B)
-{
-    Vec<M> ret = {};
-    for (int i = 0; i < M; ++i)
-        ret[i] = Dot(Row(A, i), B);
-    return ret;
-}

@@ -14,17 +14,54 @@ public:
     {
         // TODO: need process noise, but that is a matrix so... ???
         m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;// +m_processNoiseMatrix;
-        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
+        // TODO: why no process noise? is that only on first iteration?
+        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix);// +m_processNoiseMatrix;
     }
 
     void Iterate(const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
     {
-        Predict();
+
+        // H is N_z x N_x = NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
+        // P is N_x x N_x = NUM_STATE_VARIABLES x NUM_STATE_VARIABLES = Estimate uncertainty
+
+        // m_observationMatrix is NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
+        // m_stateVector is NUM_STATE_VARIABLES x 1;
+        // m_measurementUncertainty is NUM_MEASUREMENT_VARIABLES x NUM_MEASUREMENT_VARIABLES
+
+        // m_observationMatrix is 2 x 6
+        // m_stateVector is 6 x 1;
+        // m_measurementUncertainty is 2x2
+
+        // m_observationMatrix * m_stateVector is 2 x 1;
+
+        // ----- 1. Measure -----
+
+        // ----- 2. Update -----
 
         // Calculate kalman gain
-        // TODO: what size is this?
-        auto kalmanGain = m_stateVector * Transpose(m_observationMatrix) *
-            Inverse(m_observationMatrix * m_stateVector * Transpose(m_observationMatrix) + m_measurementUncertainty);
+        Mtx<NUM_STATE_VARIABLES, NUM_MEASUREMENT_VARIABLES> kalmanGain = m_stateUncertainty * Transpose(m_observationMatrix) *
+            Inverse(m_observationMatrix * m_stateUncertainty * Transpose(m_observationMatrix) + m_measurementUncertainty);
+
+        // estimate current state
+        m_stateVector = m_stateVector + kalmanGain * (measurement - m_observationMatrix * m_stateVector);
+
+
+        // K * H
+        // K is NUM_STATE_VARIABLES x NUM_MEASUREMENT_VARIABLES
+        // H is NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
+
+        // update estimate uncertainty
+        const Mtx<NUM_STATE_VARIABLES, NUM_STATE_VARIABLES> I = Identity<NUM_STATE_VARIABLES>();
+        m_stateUncertainty = (I - kalmanGain * m_observationMatrix) * m_stateUncertainty * Transpose(I - kalmanGain * m_observationMatrix) +
+            kalmanGain * m_measurementUncertainty * Transpose(kalmanGain);
+
+        // ----- 3. Predict -----
+
+        m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;
+
+        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix);// +m_processNoiseMatrix;
+
+        // TODO: seems like the process noise matrix is never actually added in?!
 
         int ijkl = 0;
     }
@@ -188,7 +225,7 @@ int main(int argc, char** argv)
             2.14f
         };
 
-        //filter.Iterate({ measureX[0], measureY[0] });
+        filter.Iterate({ measureX[0], measureY[0] });
 
         int ijkl = 0;
     }
