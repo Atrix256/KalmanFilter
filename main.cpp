@@ -20,19 +20,11 @@ public:
 
     void Iterate(const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
     {
-
-        // H is N_z x N_x = NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
-        // P is N_x x N_x = NUM_STATE_VARIABLES x NUM_STATE_VARIABLES = Estimate uncertainty
-
-        // m_observationMatrix is NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
-        // m_stateVector is NUM_STATE_VARIABLES x 1;
-        // m_measurementUncertainty is NUM_MEASUREMENT_VARIABLES x NUM_MEASUREMENT_VARIABLES
-
-        // m_observationMatrix is 2 x 6
-        // m_stateVector is 6 x 1;
-        // m_measurementUncertainty is 2x2
-
-        // m_observationMatrix * m_stateVector is 2 x 1;
+        if (m_firstIterate)
+        {
+            Predict();
+            m_firstIterate = false;
+        }
 
         // ----- 1. Measure -----
 
@@ -44,11 +36,6 @@ public:
 
         // estimate current state
         m_stateVector = m_stateVector + kalmanGain * (measurement - m_observationMatrix * m_stateVector);
-
-
-        // K * H
-        // K is NUM_STATE_VARIABLES x NUM_MEASUREMENT_VARIABLES
-        // H is NUM_MEASUREMENT_VARIABLES x NUM_STATE_VARIABLES
 
         // update estimate uncertainty
         const Mtx<NUM_STATE_VARIABLES, NUM_STATE_VARIABLES> I = Identity<NUM_STATE_VARIABLES>();
@@ -78,6 +65,8 @@ public:
 
     // To match measurement values with state vector values
     Mtx<NUM_MEASUREMENT_VARIABLES, NUM_STATE_VARIABLES> m_observationMatrix = {};
+
+    bool m_firstIterate = true;
 };
 
 int main(int argc, char** argv)
@@ -134,18 +123,7 @@ int main(int argc, char** argv)
 
         // Initial state
         filter.m_stateVector = {};
-        filter.m_stateUncertainty = {};
-
-        filter.m_stateUncertainty[0][0] =
-            filter.m_stateUncertainty[1][1] =
-            filter.m_stateUncertainty[2][2] =
-            filter.m_stateUncertainty[3][3] =
-            filter.m_stateUncertainty[4][4] = 
-            filter.m_stateUncertainty[5][5] = 500.0f;
-
-        filter.Predict();
-
-        // TODO: put this into the class, when you understand things better
+        filter.m_stateUncertainty = Scale<6>(500.0f);
 
         float measureX[] =
         {
@@ -225,7 +203,12 @@ int main(int argc, char** argv)
             2.14f
         };
 
-        filter.Iterate({ measureX[0], measureY[0] });
+        // TODO: this isn't giving the same answer as the web page ):
+
+        for (int i = 0; i < _countof(measureX); ++i)
+        {
+            filter.Iterate({ measureX[i], measureY[i] });
+        }
 
         int ijkl = 0;
     }

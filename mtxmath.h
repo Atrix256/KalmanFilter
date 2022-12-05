@@ -78,12 +78,18 @@ Mtx<N, N> Inverse(const Mtx<N, N>& A)
 }
 
 template <size_t N>
-Mtx<N, N> Identity()
+Mtx<N, N> Scale(float s)
 {
     Mtx<N, N> ret = {};
     for (int i = 0; i < N; ++i)
-        ret[i][i] = 1.0f;
+        ret[i][i] = s;
     return ret;
+}
+
+template <size_t N>
+Mtx<N, N> Identity()
+{
+    return Scale<N>(1.0f);
 }
 
 // ============================= MATRIX / MATRIX =============================
