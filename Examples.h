@@ -2,8 +2,11 @@
 
 #include "Kalman.h"
 
-inline void TestExamples()
+inline void Example9()
 {
+    printf(__FUNCTION__ "...\n");
+    const char* fileName = "out/" __FUNCTION__ ".csv";
+
     // Example 9
     // https://www.kalmanfilter.net/multiExamples.html
     {
@@ -14,6 +17,9 @@ inline void TestExamples()
 
         KalmanFilter<6, 0, 2> filter;
 
+        filter.m_stateNames = {"pred. x", "pred. x'", "pred. x''", "pred. y", "pred. y'", "pred. y''"};
+        filter.m_measurementNames = { "measured x", "measured y" };
+
         filter.m_stateUpdateMatrix = {
             1.0f, c_deltaT, 0.5f * c_deltaT * c_deltaT, 0.0f,     0.0f,                       0.0f,
             0.0f,     1.0f,                   c_deltaT, 0.0f,     0.0f,                       0.0f,
@@ -23,7 +29,6 @@ inline void TestExamples()
             0.0f,     0.0f,                       0.0f, 0.0f,     0.0f,                       1.0f,
         };
 
-        // TODO: how was this derived?
         filter.m_processNoiseMatrix = {
             powf(c_deltaT, 4.0f) / 4.0f, powf(c_deltaT, 3.0f) / 2.0f, powf(c_deltaT, 2.0f) / 2.0f,                        0.0f,                        0.0f,                        0.0f,
             powf(c_deltaT, 3.0f) / 2.0f,         c_deltaT * c_deltaT,                    c_deltaT,                        0.0f,                        0.0f,                        0.0f,
@@ -127,6 +132,14 @@ inline void TestExamples()
         };
 
         for (int i = 0; i < _countof(measureX); ++i)
+        {
             filter.Iterate({ measureX[i], measureY[i] });
+            filter.OutputState(fileName, i, { measureX[i], measureY[i] });
+        }
     }
+}
+
+inline void TestExamples()
+{
+    Example9();
 }
