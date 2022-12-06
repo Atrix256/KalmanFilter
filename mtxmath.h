@@ -4,7 +4,7 @@
 
 // Matrix notion of an MxN matrix means it is M values high and N values wide
 template <size_t M, size_t N>
-using Mtx = std::array<std::array<float, N>, M>;
+using Mtx = std::array<std::array<double, N>, M>;
 
 template <size_t N>
 using Vec = Mtx<N, 1>;
@@ -14,9 +14,9 @@ using Vec = Mtx<N, 1>;
 // ============================= VECTOR / VECTOR =============================
 
 template <size_t N>
-float Dot(const Vec<N>& A, const Vec<N>& B)
+double Dot(const Vec<N>& A, const Vec<N>& B)
 {
-    float ret = 0.0f;
+    double ret = 0.0;
     for (int i = 0; i < N; ++i)
         ret += A[i][0] * B[i][0];
     return ret;
@@ -62,7 +62,7 @@ Mtx<N, N> Inverse(const Mtx<N, N>& A)
         for (int ix = 0; ix < N; ++ix)
         {
             augmentedMtx[iy][ix] = A[iy][ix];
-            augmentedMtx[iy][ix + N] = (ix == iy) ? 1.0f : 0.0f;
+            augmentedMtx[iy][ix + N] = (ix == iy) ? 1.0 : 0.0;
         }
     }
 
@@ -78,7 +78,7 @@ Mtx<N, N> Inverse(const Mtx<N, N>& A)
 }
 
 template <size_t N>
-Mtx<N, N> Scale(float s)
+Mtx<N, N> Scale(double s)
 {
     Mtx<N, N> ret = {};
     for (int i = 0; i < N; ++i)
@@ -127,7 +127,7 @@ Mtx<M, N> operator -(const Mtx<M, N>& A, const Mtx<M, N>& B)
 // ============================= MATRIX / SCALAR =============================
 
 template <size_t M, size_t N>
-Mtx<M, N> operator *(const Mtx<M, N>& A, float B)
+Mtx<M, N> operator *(const Mtx<M, N>& A, double B)
 {
     Mtx<M, N> ret;
     for (int iy = 0; iy < M; ++iy)
@@ -137,7 +137,7 @@ Mtx<M, N> operator *(const Mtx<M, N>& A, float B)
 }
 
 template <size_t M, size_t N>
-Mtx<M, N> operator *(float A, const Mtx<M, N>& B)
+Mtx<M, N> operator *(double A, const Mtx<M, N>& B)
 {
     return B * A;
 }

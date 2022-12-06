@@ -10,7 +10,7 @@ void GaussJordanElimination(Mtx<M, N>& augmentedMtx)
 	{
 		// find the row that has the maximum absolute value for this column
 		int maxValueRowIndex = column;
-		float maxValue = augmentedMtx[column][column];
+		double maxValue = augmentedMtx[column][column];
 		for (int row = column + 1; row < M; ++row)
 		{
 			if (abs(augmentedMtx[row][column]) > abs(maxValue))
@@ -29,7 +29,7 @@ void GaussJordanElimination(Mtx<M, N>& augmentedMtx)
 
 		// scale this row by the value
 		{
-			float scale = augmentedMtx[column][column];
+			double scale = augmentedMtx[column][column];
 			for (size_t ix = 0; ix < N; ++ix)
 				augmentedMtx[column][ix] /= scale;
 		}
@@ -40,8 +40,8 @@ void GaussJordanElimination(Mtx<M, N>& augmentedMtx)
 			if (iy == column)
 				continue;
 
-			float scale = augmentedMtx[iy][column];
-			if (scale == 0.0f)
+			double scale = augmentedMtx[iy][column];
+			if (scale == 0.0)
 				continue;
 
 			for (size_t ix = 0; ix < N; ++ix)

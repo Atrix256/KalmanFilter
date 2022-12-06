@@ -12,14 +12,14 @@ public:
 
     void Predict()
     {
-        // TODO: need process noise, but that is a matrix so... ???
-        m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;// +m_processNoiseMatrix;
-        // TODO: why no process noise? is that only on first iteration?
-        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix);// +m_processNoiseMatrix;
+        // Note: the formula shows this plus some noise. That noise is implied (this formula != reality), not actually added in!
+        m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;
+        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
     }
 
     void Iterate(const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
     {
+        // There is a predict as the first step, per https://www.kalmanfilter.net/multiExamples.html
         if (m_firstIterate)
         {
             Predict();
@@ -27,6 +27,8 @@ public:
         }
 
         // ----- 1. Measure -----
+
+        // This was already done and provided to us
 
         // ----- 2. Update -----
 
@@ -45,12 +47,7 @@ public:
         // ----- 3. Predict -----
 
         m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;
-
-        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix);// +m_processNoiseMatrix;
-
-        // TODO: seems like the process noise matrix is never actually added in?!
-
-        int ijkl = 0;
+        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
     }
 
     Vec<NUM_STATE_VARIABLES> m_stateVector = {};
@@ -70,21 +67,11 @@ public:
 };
 
 int main(int argc, char** argv)
-{
-    /*
-    Vec<2> testV = { 1.0f, 0.2f };
-    Mtx<2, 3> testM = {
-        0.0f, 1.0f, 0.5f,
-        1.0f, 0.0f, 0.5f,
-    };
-    auto result = testV * testM;
-    int ijkl = 0;
-    */
- 
+{ 
     // Example 9
     // https://www.kalmanfilter.net/multiExamples.html
     {
-        static const float c_deltaT = 1.0f;
+        static const float c_deltaT = 1.0f; // Seconds
         static const float c_randomAccelerationStdDev = 0.2f; // Meters / Seconds^2
         static const float c_measurementErrorStdDevX = 3.0f; // Meters
         static const float c_measurementErrorStdDevY = 3.0f; // Meters
@@ -203,14 +190,8 @@ int main(int argc, char** argv)
             2.14f
         };
 
-        // TODO: this isn't giving the same answer as the web page ):
-
         for (int i = 0; i < _countof(measureX); ++i)
-        {
             filter.Iterate({ measureX[i], measureY[i] });
-        }
-
-        int ijkl = 0;
     }
 
     return 0;
