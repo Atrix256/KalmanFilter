@@ -146,7 +146,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Examples.h" />
     <ClInclude Include="GaussJordan.h" />
+    <ClInclude Include="Kalman.h" />
     <ClInclude Include="mtxmath.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

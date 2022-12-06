@@ -6,5 +6,7 @@
   <ItemGroup>
     <ClInclude Include="mtxmath.h" />
     <ClInclude Include="GaussJordan.h" />
+    <ClInclude Include="Kalman.h" />
+    <ClInclude Include="Examples.h" />
   </ItemGroup>
 </Project>
