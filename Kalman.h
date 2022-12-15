@@ -2,6 +2,7 @@
 
 #include "mtxmath.h"
 #include <string>
+#include <vector>
 
 template <size_t NUM_STATE_VARIABLES, size_t NUM_CONTROL_VARIABLES, size_t NUM_MEASUREMENT_VARIABLES>
 class KalmanFilter
@@ -29,6 +30,12 @@ public:
         // Note: the formula shows this plus some noise. That noise is implied (this formula != reality), not actually added in!
         m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;
         m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
+    }
+
+    void DoFirstPrediction()
+    {
+        Predict();
+        m_firstIterate = false;
     }
 
     void Iterate(const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
@@ -59,12 +66,18 @@ public:
             m_kalmanGain * m_measurementUncertainty * Transpose(m_kalmanGain);
 
         // ----- 3. Predict -----
-
-        m_stateVector = m_stateUpdateMatrix * m_stateVector + m_controlMatrix * m_controlVector;
-        m_stateUncertainty = m_stateUpdateMatrix * m_stateUncertainty * Transpose(m_stateUpdateMatrix) + m_processNoiseMatrix;
+        Predict();
     }
 
-    void OutputState(const char* fileName, int index, const Vec<NUM_MEASUREMENT_VARIABLES>& measurement)
+    struct ExtraValues
+    {
+        float value;
+        const char* label;
+    };
+
+    // TODO: output the extra state too!
+
+    void OutputState(const char* fileName, int index, const Vec<NUM_MEASUREMENT_VARIABLES>& measurement, std::vector<ExtraValues> extraValues = {})
     {
         FILE* file;
         if (index == 0)
@@ -73,6 +86,8 @@ public:
             fprintf(file, "\"index\"");
             for (int i = 0; i < NUM_MEASUREMENT_VARIABLES; ++i)
                 fprintf(file, ",\"%s\"", m_measurementNames[i].c_str());
+            for (int i = 0; i < extraValues.size(); ++i)
+                fprintf(file, ",\"%s\"", extraValues[i].label);
             for (int i = 0; i < NUM_STATE_VARIABLES; ++i)
                 fprintf(file, ",\"%s\"", m_stateNames[i].c_str());
             for (int iy = 0; iy < NUM_STATE_VARIABLES; ++iy)
@@ -90,6 +105,8 @@ public:
         fprintf(file, "\"%i\"", index);
         for (int i = 0; i < NUM_MEASUREMENT_VARIABLES; ++i)
             fprintf(file, ",\"%f\"", measurement[i][0]);
+        for (int i = 0; i < extraValues.size(); ++i)
+            fprintf(file, ",\"%f\"", extraValues[i].value);
         for (int i = 0; i < NUM_STATE_VARIABLES; ++i)
             fprintf(file, ",\"%f\"", m_stateVector[i][0]);
         for (int iy = 0; iy < NUM_STATE_VARIABLES; ++iy)
