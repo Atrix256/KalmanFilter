@@ -75,8 +75,6 @@ public:
         const char* label;
     };
 
-    // TODO: output the extra state too!
-
     void OutputState(const char* fileName, int index, const Vec<NUM_MEASUREMENT_VARIABLES>& measurement, std::vector<ExtraValues> extraValues = {})
     {
         FILE* file;
