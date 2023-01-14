@@ -16,4 +16,5 @@ int main(int argc, char** argv)
 TODO:
 - output the details of each step to be able to graph it etc. to csv but probably also something to the screen?
 - how was m_processNoiseMatrix derived in example 9?
+- extended kalman filter!
 */
